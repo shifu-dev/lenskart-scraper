@@ -9,7 +9,7 @@ def main(args, argc):
 
     scraper = Scraper()
     url = args[1]
-    details = scraper.scrap("https://www.lenskart.com/lenskart-blu-lb-e13737-c1-eyeglasses.html")
+    details = scraper.scrap(url)
     print(details)
 
 
