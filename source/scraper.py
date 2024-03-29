@@ -12,7 +12,7 @@ class Scraper:
         product_currency = product_price_span.contents[0].text
         product_price = product_price_span.contents[1].text
         product_size_text = soup.find("p", attrs={ "class": "Size--13d7slh dCZfjB" }).text
-        product_size = product_size_text[7:]
+        product_size = product_size_text[7:] # 7 for "Size : " in "Size : Wide"
 
         product = Details()
         product.product_title = product_title
