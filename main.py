@@ -1,5 +1,5 @@
 import sys
-from source.scraper import Scraper as eyeglass_scraper
+from source import eyeglasses
 from source.product_list_scrapper import product_list_scrapper
 from source.product_exporter import product_exporter
 import argparse
@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("--parse")
 args = parser.parse_args()
 
-scraper = eyeglass_scraper()
+scraper = eyeglasses.scraper()
 if args.parse == "eyeglasses":
     scrap_all_eyeglasses()
 else:
