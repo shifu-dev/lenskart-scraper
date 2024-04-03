@@ -71,13 +71,13 @@ class scraper:
 
 
 class list_scrapper:
-    def scrap(self, url):
+    def scrap(self, url, limit=10000):
 
         print(f"scrapping {url}...")
 
         page = requests.get(url)
         soup = BeautifulSoup(page.text, "html.parser")
-        products_tag = soup.find_all(class_="ProductContainer--jvh5co hOkCDF")
+        products_tag = soup.find_all(class_="ProductContainer--jvh5co hOkCDF", limit=limit)
 
         print(f"found {len(products_tag)} products.")
 
