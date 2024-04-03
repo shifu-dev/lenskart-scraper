@@ -28,7 +28,7 @@ class details:
 class scraper:
     def scrap(self, url):
         print(f"scraping {url}...")
-        
+
         response = requests.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
 
@@ -54,7 +54,6 @@ class scraper:
         # details.coupen_code = coupen
         # details.rating = review
 
-
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
         product_title = soup.find(class_="Title--1mf9vro hPTYyn").text
@@ -69,3 +68,41 @@ class scraper:
         details.currency = product_currency
         details.size = product_size
         return details
+
+
+class list_scrapper:
+    def scrap(self, url):
+
+        print(f"scrapping {url}...")
+
+        page = requests.get(url)
+        soup = BeautifulSoup(page.text, "html.parser")
+        products_tag = soup.find_all(class_="ProductContainer--jvh5co hOkCDF")
+
+        print(f"found {len(products_tag)} products.")
+
+        products = []
+        for product_tag in products_tag:
+            # product_id = product_tag.get("id")
+            product_url = product_tag.contents[0].get("href")[1:]
+            products.append(f"https://lenskart.com/{product_url}")
+
+        return products
+
+
+class exporter:
+    def __init__(self, writer):
+        self.writer = writer
+        writer.writerow(["Title", "Price", "Currency Type", "Size"])
+
+    def add(self, details):
+        self.writer.writerow(
+            [
+                details.title,
+                details.price,
+                details.currency,
+                details.size,
+            ]
+        )
+
+    writer: any
