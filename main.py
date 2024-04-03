@@ -1,7 +1,25 @@
 import sys
 from source.scraper import Scraper as eyeglass_scraper
 from source.product_list_scrapper import product_list_scrapper
+from source.product_exporter import product_exporter
 import argparse
+import csv
+
+
+def scrap_all_eyeglasses():
+    eyeglasses_list_link = "https://www.lenskart.com/eyeglasses.html"
+    eyeglass_links = product_list_scrapper().scrap(eyeglasses_list_link)
+
+    file = open("eyeglasses.csv", "w")
+    writer = csv.writer(file)
+    exporter = product_exporter(writer)
+
+    for link in eyeglass_links:
+        details = scraper.scrap(f"https://www.lenskart.com/{link[1]}")
+        exporter.add(details)
+
+    file.close()
+
 
 parser = argparse.ArgumentParser(
     prog="lenskart-scraper",
@@ -13,11 +31,7 @@ args = parser.parse_args()
 
 scraper = eyeglass_scraper()
 if args.parse == "eyeglasses":
-    eyeglasses_list_link = "https://www.lenskart.com/eyeglasses.html?pageCount=95"
-    eyeglass_links = product_list_scrapper().scrap(eyeglasses_list_link)
-    for link in eyeglass_links:
-        details = scraper.scrap(f"https://www.lenskart.com/{link[1]}")
-        print(details)
+    scrap_all_eyeglasses()
 else:
     print("we only support eyeglasses for now.")
     exit()
