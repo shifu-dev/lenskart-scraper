@@ -20,6 +20,3 @@ class product_list_scrapper:
             products.append((product_id, product_url))
 
         return products
-
-
-product_list_scrapper().scrap("https://www.lenskart.com/eyeglasses.html?pageCount=95")
