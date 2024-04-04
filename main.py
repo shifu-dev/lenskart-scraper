@@ -24,11 +24,11 @@ parser = argparse.ArgumentParser(
     description="scraps any content from lenskart website and outputs in multiple formats",
 )
 
-parser.add_argument("--parse", type=str, required=True)
+parser.add_argument("--scrap", type=str, required=True)
 parser.add_argument("--limit", type=int, required=False)
 args = parser.parse_args()
 
-if args.parse == "eyeglasses":
+if args.scrap == "eyeglasses":
     scrap_all_eyeglasses(args.limit)
 else:
     print("we only support eyeglasses for now.")
