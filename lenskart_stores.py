@@ -1,33 +1,39 @@
 import requests
 from bs4 import BeautifulSoup
 
-#states_list = ['Andhra Pradesh', 'Andaman and Nicobar', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chennai', 'Chhattisgarh', 'Dadra and Nagar Haveli', 'Delhi', 'Goa', 'Gujarat', 'Gwalior', 'Haryana', 'Himachal Pradesh', 'Hyderabad', 'Jammu and Kashmir', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Nagaland', 'New Delhi', 'Odisha', 'Patna', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal']
+class Scraper:
+    def scrape_store(url):
+        response = requests.get(url)    
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        store_detail = {}
 
+        store_detail["Store Name"] = soup.find('h1', class_='Home_name__J6U_a').text.strip()
+        store_detail["Address"] = soup.find('div', class_='Home_wrapper__ARCSA').text.strip()
+        timing_text = soup.find('div', class_='Home_infoBox__PV5Wz').text.strip()
+        store_detail["Timing"] = timing_text.split('.Close')[1]
+        store_detail["Service"] = soup.find_all('span', class_='Home_miniHead__KKq3S')[1].find_next_sibling().text.strip()
+        tel_links = soup.find_all('a', href=lambda href: href and 'tel:' in href)
+        store_detail["Phone Number"] = tel_links[1]['href'].split(':')[1]
+        store_detail["Google Map Link"] = soup.find('a', href=lambda href: href and 'maps.google.com' in href)['href']
+        review_count = soup.find('div', class_='Home_count__Y0nOJ').text.strip()
+        rating = soup.find('div', class_='Home_rating__BaBug').text.strip()+review_count
+        store_detail["Rating"] = rating
 
-def scrape_lenskart_stores(url):
-    
-    #urlformat: 'https://www.lenskart.com/stores/location/' + state
-    
-    all_stores = []
-    state = url.split('/')[-1]
-    
-    response = requests.get(url)    
-    soup = BeautifulSoup(response.content, 'html.parser')
-    stores=soup.find_all('div', class_='StoreCard_imgContainer__P6NMN')
-    
-    for store in stores:
-        name = store.find('a', {'class' : "StoreCard_name__mrTXJ"}).text
-        address = store.find('a', {'class' : 'StoreCard_storeAddress__PfC_v'}).text
-        timings = store.find('div', {'class' : 'StoreCard_storeAddress__PfC_v'}).text[7:-1]
-        phone = store.find('div', {'class' : "StoreCard_wrapper__xhJ0A"}).a.text[1:]
-        rating = store.find('div', {'class' : 'StoreCard_storeRating__dJst3'}).text.strip()
+        nearby_stores = soup.find_all('div', class_='StoreCard_halfCard__X8eye')
+        nearby_store_details = []
+        for store in nearby_stores:
+            nearby_store_name = store.find('div', class_='StoreCard_name__mrTXJ').find('span').text.strip()
+            nearby_store_address = store.find('div', class_='storeDetials').find('span').text.strip()
+            nearby_store_distance= nearby_store_address.split('.')[1:][0]
+            nearby_store_details.append({
+                "Store Name": nearby_store_name,
+                "Distance": nearby_store_distance
+            })
 
-        #(['State', 'Area Name', 'Address', 'Timings', 'Phone', 'Rating'])
-        all_stores.append((state, name, address,  timings, phone, rating))
-    
-    #returns the list of all stores in the given state
-    return all_stores
+        store_detail["Nearby Stores"] = nearby_store_details
+        
+        return store_detail
 
-
-
-
+store_info = Scraper.scrape_store('https://www.lenskart.com/stores/lenskart-com-chhatarpur-mehrauli-new-delhi-136896/Home')
+print(store_info)
