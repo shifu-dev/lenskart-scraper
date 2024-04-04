@@ -35,5 +35,5 @@ class Scraper:
         
         return store_detail
 
-store_info = Scraper.scrape_store('https://www.lenskart.com/stores/lenskart-com-chhatarpur-mehrauli-new-delhi-136896/Home')
-print(store_info)
+# store_info = Scraper.scrape_store('https://www.lenskart.com/stores/lenskart-com-chhatarpur-mehrauli-new-delhi-136896/Home')
+# print(store_info)
