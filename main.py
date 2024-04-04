@@ -11,6 +11,7 @@ def scrap_all_eyeglasses(limit=10000):
     writer = csv.writer(file)
     exporter = eyeglasses.exporter(writer)
 
+    scraper = eyeglasses.scraper()
     for link in eyeglass_links:
         details = scraper.scrap(link)
         exporter.add(details)
@@ -27,7 +28,6 @@ parser.add_argument("--parse", type=str, required=True)
 parser.add_argument("--limit", type=int, required=False)
 args = parser.parse_args()
 
-scraper = eyeglasses.scraper()
 if args.parse == "eyeglasses":
     scrap_all_eyeglasses(args.limit)
 else:
