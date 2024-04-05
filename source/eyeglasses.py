@@ -27,8 +27,6 @@ class details:
 
 class scraper:
     def scrap(self, url):
-        print(f"scraping {url}...")
-
         response = requests.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
 

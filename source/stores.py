@@ -64,6 +64,18 @@ class StoreScraper:
 
         return details
 
+    
+class StoreListScraper:
+
+    # todo: implement this, this is a dummy implementatiom.
+    def scrap(self, url, limit=10000) -> None:
+        urls = []
+        urls.append("https://www.lenskart.com/stores/lenskart-com-chhatarpur-mehrauli-new-delhi-136896/Home")
+        urls.append("https://www.lenskart.com/stores/lenskart-com-jawahar-nagar-optometrists-jawahar-nagar-new-delhi-77003/Home")
+        urls.append("https://www.lenskart.com/stores/optometrist-sunglasses-paschim-vihar-new-delhi-60858/Home")
+        urls.append("https://www.lenskart.com/stores/optometrist-sunglasses-model-town-new-delhi-60859/Home")
+        return urls
+
 
 class StoreExporter:
 
