@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from http import HTTPStatus
 
 
 class StoreDetails:
@@ -14,8 +15,11 @@ class StoreDetails:
 
 
 class StoreScraper:
-    def scrap(url):
+    def scrap(self, url):
         response = requests.get(url)
+        if response.status_code != HTTPStatus.OK:
+            return None
+
         soup = BeautifulSoup(response.content, "html.parser")
 
         details = StoreDetails()
@@ -62,8 +66,10 @@ class StoreScraper:
 
 
 class StoreExporter:
+
     def __init__(self, writer: object) -> None:
-        writer.writerow(
+        self.writer = writer
+        self.writer.writerow(
             [
                 "Name",
                 "Address",
