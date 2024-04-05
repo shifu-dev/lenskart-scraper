@@ -1,9 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
 from http import HTTPStatus
+import csv
 
 
-class StoreDetails:
+class Details:
     name: str
     address: str
     timing: str
@@ -14,15 +15,15 @@ class StoreDetails:
     nearby_stores: object
 
 
-class StoreScraper:
-    def scrap(self, url):
+class Scraper:
+    def scrap(self, url) -> Details:
         response = requests.get(url)
         if response.status_code != HTTPStatus.OK:
             return None
 
         soup = BeautifulSoup(response.content, "html.parser")
 
-        details = StoreDetails()
+        details = Details()
 
         details.name = soup.find("h1", class_="Home_name__J6U_a").text.strip()
         details.address = soup.find("div", class_="Home_wrapper__ARCSA").text.strip()
@@ -64,22 +65,30 @@ class StoreScraper:
 
         return details
 
-    
-class StoreListScraper:
+
+class ListScraper:
 
     # todo: implement this, this is a dummy implementatiom.
-    def scrap(self, url, limit=10000) -> None:
+    def scrap(self, url, limit=10000) -> list[str]:
         urls = []
-        urls.append("https://www.lenskart.com/stores/lenskart-com-chhatarpur-mehrauli-new-delhi-136896/Home")
-        urls.append("https://www.lenskart.com/stores/lenskart-com-jawahar-nagar-optometrists-jawahar-nagar-new-delhi-77003/Home")
-        urls.append("https://www.lenskart.com/stores/optometrist-sunglasses-paschim-vihar-new-delhi-60858/Home")
-        urls.append("https://www.lenskart.com/stores/optometrist-sunglasses-model-town-new-delhi-60859/Home")
+        urls.append(
+            "https://www.lenskart.com/stores/lenskart-com-chhatarpur-mehrauli-new-delhi-136896/Home"
+        )
+        urls.append(
+            "https://www.lenskart.com/stores/lenskart-com-jawahar-nagar-optometrists-jawahar-nagar-new-delhi-77003/Home"
+        )
+        urls.append(
+            "https://www.lenskart.com/stores/optometrist-sunglasses-paschim-vihar-new-delhi-60858/Home"
+        )
+        urls.append(
+            "https://www.lenskart.com/stores/optometrist-sunglasses-model-town-new-delhi-60859/Home"
+        )
         return urls
 
 
-class StoreExporter:
+class Exporter:
 
-    def __init__(self, writer: object) -> None:
+    def __init__(self, writer: object):
         self.writer = writer
         self.writer.writerow(
             [
@@ -109,3 +118,40 @@ class StoreExporter:
         )
 
     writer: object
+
+
+def scrap(url, file):
+    scraper = Scraper()
+    details = scraper.scrap(url)
+
+    if details is None:
+        print(f"unknown error when scraping store url {url}.")
+        return
+
+    file = open("stores.csv", "w")
+    writer = csv.writer(file)
+    exporter = Exporter(writer)
+
+    exporter.add(details)
+    file.close()
+
+
+def scrap_all(limit=10000):
+    list_scraper = ListScraper()
+    store_list_url = "https://www.lenskart.com/stores"
+
+    print(f"scraping {store_list_url}...")
+    store_urls = list_scraper.scrap(store_list_url, limit=limit)
+    print(f"found {len(store_urls)} stores.")
+
+    file = open("stores.csv", "w")
+    writer = csv.writer(file)
+    exporter = Exporter(writer)
+
+    scraper = Scraper()
+    for url in store_urls:
+        print(f"scraping store: {url}")
+        details = scraper.scrap(url)
+        exporter.add(details)
+
+    file.close()
