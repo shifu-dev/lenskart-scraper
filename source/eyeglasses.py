@@ -1,59 +1,92 @@
 from bs4 import BeautifulSoup
+from dataclasses import dataclass
+from http import HTTPStatus
 import requests
+import json
 import csv
 
-
+@dataclass(init=False)
 class Details:
     name: str
-    collection: str
     size: str
     price: int
     currency: str
-    coupen_code: str
-    rating: int
+    brand_name: str
+    product_type: str
+    frame_type: str
+    frame_shape: str
+    collection: str
+    frame_size: str
+    price: int
+    coupon_code: str
+    rating: str
+    weight_group: str
+    material: str
+    product_warranty: str
+    gender: str 
+    purchase_count: int
+    product_quantity: int
 
 
 class Scraper:
     def scrap(self, url) -> Details:
         response = requests.get(url)
-        soup = BeautifulSoup(response.content, "html.parser")
 
-        # todo: update this code to fetch from single product page instead, like the one below
-        #
-        # name = soup.find("p", class_="ProductTitle--13we1dx").text
-        # price = soup.find("span", class_="SpecialPriceSpan--1olt47v")
-        # price = price.get_text().split("₹")[1]
-        # offer = soup.find("div", class_="OfferContainer--zhhshs").text
-        # discount = offer.split("₹")[1].split(".")[0].strip()
-        # coupen = offer.split(": ")[1]
-        # size_details = soup.find("span", class_="ProductSize--64lzs8").text
-        # size = size_details.split(": ")[1].split(" •")[0]
-        # collection = size_details.split("•")[1].strip()
-        # review = soup.find("span", class_="NumberedRatingSpan--fq61xb").text
+        if response.status_code != HTTPStatus.OK:
+            return None
 
-        # details = Details()
-        # details.name = name
-        # details.collection = collection
-        # details.size = size
-        # details.price = price
-        # details.price = discount
-        # details.coupen_code = coupen
-        # details.rating = review
-
-        response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
-        product_title = soup.find(class_="Title--1mf9vro hPTYyn").text
+
+        product_name = soup.find(class_="Title--1mf9vro hPTYyn").text
         product_price_span = soup.find(class_="SpecialPriceSpan--1olt47v eowfNn")
         product_currency = product_price_span.contents[0].text
-        product_price = product_price_span.contents[1].text
         product_size_text = soup.find(class_="Size--13d7slh dCZfjB").text
         product_size = product_size_text[7:]  # 7 for "Size : " in "Size : Wide"
 
+        script_tag = soup.find("script", {"id": "__NEXT_DATA__"})
+        data = json.loads(script_tag.string)
+        
+        product_data = data['props']['pageProps']['data']['productDetailData']
+        technical_product_info = product_data['technicalProductInfo']
+        general_product_info = product_data['generalProductInfo']
+        
+        brand_name = next((item['value'] for item in technical_product_info if item['name'] == 'Brand Name'), None)
+        product_type = next((item['value'] for item in technical_product_info if item['name'] == 'Product Type'), None)
+        frame_type = next((item['value'] for item in technical_product_info if item['name'] == 'Frame Type'), None)
+        frame_shape = next((item['value'] for item in technical_product_info if item['name'] == 'Frame Shape'), None)
+
+        collection = next((item['value'] for item in general_product_info if item['name'] == 'Collection'), None)
+        frame_size = next((item['value'] for item in general_product_info if item['name'] == 'Frame Size'), None)
+        weight_group = next((item['value'] for item in general_product_info if item['name'] == 'Weight Group'), None)
+        material = next((item['value'] for item in general_product_info if item['name'] == 'Material'), None)
+        product_warranty = next((item['value'] for item in general_product_info if item['name'] == 'Product Warranty'), None)
+        gender = next((item['value'] for item in general_product_info if item['name'] == 'Gender'), None)
+
+        price = product_data['price']['basePrice']
+        rating = product_data['productRating']
+        purchase_count = product_data['purchaseCount']
+        product_quantity = product_data['productQuantity']
+
         details = Details()
-        details.name = product_title
-        details.price = product_price
+        details.name = product_name
         details.currency = product_currency
         details.size = product_size
+        details.brand_name = brand_name
+        details.product_type = product_type
+        details.frame_type = frame_type
+        details.frame_shape = frame_shape
+        details.collection = collection
+        details.frame_size = frame_size
+        details.price = price
+        details.coupon_code = ""
+        details.rating = rating
+        details.weight_group = weight_group
+        details.material = material
+        details.product_warranty = product_warranty
+        details.gender = gender
+        details.purchase_count = purchase_count
+        details.product_quantity = product_quantity
+
         return details
 
 
@@ -112,6 +145,7 @@ def scrap_all(limit=10000):
     for url in eyeglass_urls:
         print(f"scraping eyeglass: {url}")
         details = scraper.scrap(url)
+        print(details)
         exporter.add(details)
 
     file.close()
