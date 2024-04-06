@@ -1,5 +1,6 @@
 from source import eyeglasses
 from source import stores
+from source import lenses
 import argparse
 
 parser = argparse.ArgumentParser(
@@ -17,6 +18,9 @@ if args.scrap == "eyeglasses":
 
 elif args.scrap == "stores":
     stores.scrap_all(args.limit)
+
+elif args.scrap == "lens":
+    lenses.scrap_all(args.limit)
 
 elif args.scrap == "store":
     if args.url is None:

@@ -237,17 +237,15 @@ class Exporter:
 
 def scrap_all(limit=10000):
     list_scraper = ListScraper()
-    eyeglass_list_url = (
-        "https://www.lenskart.com/eyeglasses/promotions/all-kids-eyeglasses.html"
-    )
-    eyeglass_urls = list_scraper.scrap(eyeglass_list_url, limit=limit)
+    list_url = "https://www.lenskart.com/eyeglasses.html"
+    urls = list_scraper.scrap(list_url, limit=limit)
 
     file = open("eyeglasses.csv", "w")
     writer = csv.writer(file)
     exporter = Exporter(writer)
 
     scraper = Scraper()
-    for url in eyeglass_urls:
+    for url in urls:
         print(f"scraping eyeglass: {url}")
         details = scraper.scrap(url)
         exporter.add(details)

@@ -140,18 +140,18 @@ def scrap(url, file):
 
 def scrap_all(limit=10000):
     list_scraper = ListScraper()
-    store_list_url = "https://www.lenskart.com/stores"
+    list_url = "https://www.lenskart.com/stores"
 
-    print(f"scraping {store_list_url}...")
-    store_urls = list_scraper.scrap(store_list_url, limit=limit)
-    print(f"found {len(store_urls)} stores.")
+    print(f"scraping {list_url}...")
+    urls = list_scraper.scrap(list_url, limit=limit)
+    print(f"found {len(urls)} stores.")
 
     file = open("stores.csv", "w")
     writer = csv.writer(file)
     exporter = Exporter(writer)
 
     scraper = Scraper()
-    for url in store_urls:
+    for url in urls:
         print(f"scraping store: {url}")
         details = scraper.scrap(url)
         exporter.add(details)
