@@ -5,6 +5,7 @@ import requests
 import json
 import csv
 
+
 @dataclass(init=False)
 class Details:
     name: str
@@ -17,13 +18,12 @@ class Details:
     frame_shape: str
     collection: str
     frame_size: str
-    price: int
     coupon_code: str
     rating: str
     weight_group: str
     material: str
     product_warranty: str
-    gender: str 
+    gender: str
     purchase_count: int
     product_quantity: int
 
@@ -45,27 +45,97 @@ class Scraper:
 
         script_tag = soup.find("script", {"id": "__NEXT_DATA__"})
         data = json.loads(script_tag.string)
-        
-        product_data = data['props']['pageProps']['data']['productDetailData']
-        technical_product_info = product_data['technicalProductInfo']
-        general_product_info = product_data['generalProductInfo']
-        
-        brand_name = next((item['value'] for item in technical_product_info if item['name'] == 'Brand Name'), None)
-        product_type = next((item['value'] for item in technical_product_info if item['name'] == 'Product Type'), None)
-        frame_type = next((item['value'] for item in technical_product_info if item['name'] == 'Frame Type'), None)
-        frame_shape = next((item['value'] for item in technical_product_info if item['name'] == 'Frame Shape'), None)
 
-        collection = next((item['value'] for item in general_product_info if item['name'] == 'Collection'), None)
-        frame_size = next((item['value'] for item in general_product_info if item['name'] == 'Frame Size'), None)
-        weight_group = next((item['value'] for item in general_product_info if item['name'] == 'Weight Group'), None)
-        material = next((item['value'] for item in general_product_info if item['name'] == 'Material'), None)
-        product_warranty = next((item['value'] for item in general_product_info if item['name'] == 'Product Warranty'), None)
-        gender = next((item['value'] for item in general_product_info if item['name'] == 'Gender'), None)
+        product_data = data["props"]["pageProps"]["data"]["productDetailData"]
+        technical_product_info = product_data["technicalProductInfo"]
+        general_product_info = product_data["generalProductInfo"]
 
-        price = product_data['price']['basePrice']
-        rating = product_data['productRating']
-        purchase_count = product_data['purchaseCount']
-        product_quantity = product_data['productQuantity']
+        brand_name = next(
+            (
+                item["value"]
+                for item in technical_product_info
+                if item["name"] == "Brand Name"
+            ),
+            None,
+        )
+        product_type = next(
+            (
+                item["value"]
+                for item in technical_product_info
+                if item["name"] == "Product Type"
+            ),
+            None,
+        )
+        frame_type = next(
+            (
+                item["value"]
+                for item in technical_product_info
+                if item["name"] == "Frame Type"
+            ),
+            None,
+        )
+        frame_shape = next(
+            (
+                item["value"]
+                for item in technical_product_info
+                if item["name"] == "Frame Shape"
+            ),
+            None,
+        )
+
+        collection = next(
+            (
+                item["value"]
+                for item in general_product_info
+                if item["name"] == "Collection"
+            ),
+            None,
+        )
+        frame_size = next(
+            (
+                item["value"]
+                for item in general_product_info
+                if item["name"] == "Frame Size"
+            ),
+            None,
+        )
+        weight_group = next(
+            (
+                item["value"]
+                for item in general_product_info
+                if item["name"] == "Weight Group"
+            ),
+            None,
+        )
+        material = next(
+            (
+                item["value"]
+                for item in general_product_info
+                if item["name"] == "Material"
+            ),
+            None,
+        )
+        product_warranty = next(
+            (
+                item["value"]
+                for item in general_product_info
+                if item["name"] == "Product Warranty"
+            ),
+            None,
+        )
+        gender = next(
+            (
+                item["value"]
+                for item in general_product_info
+                if item["name"] == "Gender"
+            ),
+            None,
+        )
+
+        price = product_data["price"]["basePrice"]
+        rating = product_data["productRating"]
+        purchase_count = product_data["purchaseCount"]
+        product_quantity = product_data["productQuantity"]
 
         details = Details()
         details.name = product_name
@@ -115,15 +185,50 @@ class ListScraper:
 class Exporter:
     def __init__(self, writer):
         self.writer = writer
-        writer.writerow(["Title", "Price", "Currency Type", "Size"])
+        writer.writerow(
+            [
+                "Name",
+                "Size",
+                "Price",
+                "Currency",
+                "Brand",
+                "Product Type",
+                "Frame Type",
+                "Frame Shape",
+                "Frame Size",
+                "Collection",
+                "Coupon Code",
+                "Rating",
+                "Weight Group",
+                "Material",
+                "Warranty",
+                "Gender",
+                "Purchase Count",
+                "Product Quantity",
+            ]
+        )
 
     def add(self, details) -> None:
         self.writer.writerow(
             [
                 details.name,
+                details.size,
                 details.price,
                 details.currency,
-                details.size,
+                details.brand_name,
+                details.product_type,
+                details.frame_type,
+                details.frame_shape,
+                details.frame_size,
+                details.collection,
+                details.coupon_code,
+                details.rating,
+                details.weight_group,
+                details.material,
+                details.product_warranty,
+                details.gender,
+                details.purchase_count,
+                details.product_quantity,
             ]
         )
 
@@ -145,7 +250,6 @@ def scrap_all(limit=10000):
     for url in eyeglass_urls:
         print(f"scraping eyeglass: {url}")
         details = scraper.scrap(url)
-        print(details)
         exporter.add(details)
 
     file.close()

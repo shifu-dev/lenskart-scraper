@@ -2,8 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 from http import HTTPStatus
 import csv
+from dataclasses import dataclass
 
 
+@dataclass(init=False)
 class Details:
     name: str
     address: str
