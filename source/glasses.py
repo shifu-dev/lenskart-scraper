@@ -1,9 +1,20 @@
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from http import HTTPStatus
+from typing import Final
+from source import writers
 import requests
 import json
-import csv
+
+EYEGLASSES_URL: Final[str] = "https://www.lenskart.com/eyeglasses.html"
+SUNGLASSES_URL: Final[str] = "https://www.lenskart.com/sunglasses.html"
+KIDSGLASSES_URL: Final[str] = (
+    "https://www.lenskart.com/eyeglasses/promotions/all-kids-eyeglasses.html"
+)
+COMPUTER_GLASSES_URL: Final[str] = (
+    "https://www.lenskart.com/eyeglasses/collections/all-computer-glasses.html"
+)
+POWER_SUNGLASSES_URL: Final[str] = "https://www.lenskart.com/power-sunglasses-main.html"
 
 
 @dataclass(init=False)
@@ -29,7 +40,7 @@ class Details:
 
 
 class Scraper:
-    def scrap(self, url) -> Details:
+    def scrap(self, url: str) -> Details:
         response = requests.get(url)
 
         if response.status_code != HTTPStatus.OK:
@@ -161,7 +172,7 @@ class Scraper:
 
 
 class ListScraper:
-    def scrap(self, url, limit=10000) -> list[str]:
+    def scrap(self, url: str, limit: int) -> list[str]:
 
         print(f"scrapping {url}...")
 
@@ -183,9 +194,9 @@ class ListScraper:
 
 
 class Exporter:
-    def __init__(self, writer):
+    def __init__(self, writer: writers.Writer):
         self.writer = writer
-        writer.writerow(
+        writer.write_headers(
             [
                 "Name",
                 "Size",
@@ -209,7 +220,7 @@ class Exporter:
         )
 
     def add(self, details) -> None:
-        self.writer.writerow(
+        self.writer.write_row(
             [
                 details.name,
                 details.size,
@@ -232,22 +243,73 @@ class Exporter:
             ]
         )
 
-    writer: any
+    writer: writers.Writer
 
 
-def scrap_all_eyeglasses(limit=10000):
+def _scrap_all(list_url: str, writer: writers.Writer, limit: int) -> None:
     list_scraper = ListScraper()
-    list_url = "https://www.lenskart.com/eyeglasses.html"
-    urls = list_scraper.scrap(list_url, limit=limit)
+    urls = list_scraper.scrap(list_url, limit)
 
-    file = open("eyeglasses.csv", "w")
-    writer = csv.writer(file)
     exporter = Exporter(writer)
-
     scraper = Scraper()
     for url in urls:
         print(f"scraping eyeglass: {url}")
         details = scraper.scrap(url)
         exporter.add(details)
 
-    file.close()
+
+def scrap_one(url: str, writer: writers.Writer) -> None:
+    scraper = Scraper()
+    exporter = Exporter(writer)
+
+    details = scraper.scrap(url)
+    exporter.add(details)
+
+
+def scrap_all(writer: writers.Writer, limit: int) -> None:
+
+    list_scraper = ListScraper()
+
+    eyeglass_urls = list_scraper.scrap(EYEGLASSES_URL, limit)
+    sunglass_urls = list_scraper.scrap(SUNGLASSES_URL, limit)
+    kidsglass_urls = list_scraper.scrap(KIDSGLASSES_URL, limit)
+    computer_glass_urls = list_scraper.scrap(COMPUTER_GLASSES_URL, limit)
+    power_sunglass_urls = list_scraper.scrap(POWER_SUNGLASSES_URL, limit)
+    urls = set(
+        eyeglass_urls
+        + sunglass_urls
+        + kidsglass_urls
+        + computer_glass_urls
+        + power_sunglass_urls
+    )
+
+    print(f"found {len(urls)} items.")
+
+    exporter = Exporter(writer)
+    scraper = Scraper()
+    for url in urls:
+        print(f"scraping page {url}.")
+        details = scraper.scrap(url)
+        exporter.add(details)
+
+    return
+
+
+def scrap_all_eyeglasses(writer: writers.Writer, limit: int) -> None:
+    return _scrap_all(EYEGLASSES_URL, writer, limit)
+
+
+def scrap_all_sunglasses(writer: writers.Writer, limit: int) -> None:
+    return _scrap_all(SUNGLASSES_URL, writer, limit)
+
+
+def scrap_all_kidsglasses(writer: writers.Writer, limit: int) -> None:
+    return _scrap_all(KIDSGLASSES_URL, writer, limit)
+
+
+def scrap_all_computer_glasses(writer: writers.Writer, limit: int) -> None:
+    return _scrap_all(COMPUTER_GLASSES_URL, writer, limit)
+
+
+def scrap_all_power_sunglasses(writer: writers.Writer, limit: int) -> None:
+    return _scrap_all(POWER_SUNGLASSES_URL, writer, limit)

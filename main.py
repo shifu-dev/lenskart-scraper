@@ -2,6 +2,8 @@ import argparse
 from source import glasses
 from source import stores
 from source import lenses
+from source import writers
+from source import utils
 
 parser = argparse.ArgumentParser(
     prog="lenskart-scraper",
@@ -19,11 +21,10 @@ parser.add_argument(
         - 'everything': Scrap all information (includes glasses, lenses and stores).
         - 'glasses': Scrap all glasses information (includes 'eyeglasses', 'sunglasses', ...).
         - 'eyeglasses': Scrap all eyeglasses information.
-        - 'kidsglasses': Scrap all kidsglasses information.
         - 'sunglasses': Scrap all sunglasses information.
+        - 'kidsglasses': Scrap all kidsglasses information.
         - 'computer-glasses': Scrap all computer-glasses information.
         - 'power-sunglasses': Scrap all power-sunglasses information.
-        - 'progressive-glasses': Scrap all progressive-glasses information.
         - 'lenses': Scrap all contact lenses information.
         - 'stores': Scrap all stores information (includes 'stores-delhi', ...).
         - 'stores-delhi': Scrap all stores information available in delhi.
@@ -78,58 +79,68 @@ parser.add_argument(
 def main() -> None:
     args = parser.parse_args()
 
+    writer = writers.ConsoleWriter()
+
     if len(args.target) == 1:
         target: str = args.target[0]
 
         if target == "everything":
-            print("everything")
+            print("everything: not implementd yet.")
             return
 
         if target == "glasses":
-            print("glasses")
+            glasses.scrap_all(writer, args.limit)
             return
 
         if target == "eyeglasses":
-            glasses.scrap_all_eyeglasses(args.limit)
-            return
-
-        if target == "kidsglasses":
-            print("kidsglasses")
+            glasses.scrap_all_eyeglasses(writer, args.limit)
             return
 
         if target == "sunglasses":
-            print("sunglasses")
+            glasses.scrap_all_sunglasses(writer, args.limit)
+            return
+
+        if target == "kidsglasses":
+            glasses.scrap_all_kidsglasses(writer, args.limit)
             return
 
         if target == "computer-glasses":
-            print("computer-glasses")
+            glasses.scrap_all_computer_glasses(writer, args.limit)
             return
 
         if target == "power-sunglasses":
-            print("power-sunglasses")
-            return
-
-        if target == "progressive-glasses":
-            print("progressive-glasses")
+            glasses.scrap_all_power_sunglasses(writer, args.limit)
             return
 
         if target == "lenses":
-            print("lenses")
+            lenses.scrap_all(writer, args.limit)
             return
 
         if target == "stores":
-            print("stores")
+            stores.scrap_all(writer, args.limit)
             return
 
         if target == "stores-delhi":
-            print("stores-delhi")
+            stores.scrap_all_delhi(writer, args.limit)
             return
 
         if target == "stores-chennai":
-            print("stores-chennai")
+            stores.scrap_all_chennai(writer, args.limit)
             return
 
-    print(f"list of urls passed, target: {args.target}")
+        if not utils.is_url_valid(target):
+            print("invalid url or unknown option.")
+            glasses.scrap_one(target, writer)
+            return
+
+    for url in args.target:
+        if not utils.is_url_valid(url):
+            print(f"invalid url '{url}'")
+            return
+
+    for url in args.target:
+        glasses.scrap_one(url, writer)
+        return
 
 
 if __name__ == "__main__":

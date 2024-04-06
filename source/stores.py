@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from source import writers
 from http import HTTPStatus
 import csv
 from dataclasses import dataclass
@@ -14,11 +15,11 @@ class Details:
     contact_number: int
     gmap_link: str
     rating: int
-    nearby_stores: object
+    nearby_stores: list
 
 
 class Scraper:
-    def scrap(self, url) -> Details:
+    def scrap(self, url: str) -> Details:
         response = requests.get(url)
         if response.status_code != HTTPStatus.OK:
             return None
@@ -71,7 +72,7 @@ class Scraper:
 class ListScraper:
 
     # todo: implement this, this is a dummy implementatiom.
-    def scrap(self, url, limit=10000) -> list[str]:
+    def scrap(self, url: str, limit: int) -> list[str]:
         urls = []
         urls.append(
             "https://www.lenskart.com/stores/lenskart-com-chhatarpur-mehrauli-new-delhi-136896/Home"
@@ -90,9 +91,9 @@ class ListScraper:
 
 class Exporter:
 
-    def __init__(self, writer: object):
+    def __init__(self, writer: writers.Writer):
         self.writer = writer
-        self.writer.writerow(
+        self.writer.write_headers(
             [
                 "Name",
                 "Address",
@@ -105,8 +106,8 @@ class Exporter:
             ]
         )
 
-    def add(self, details) -> None:
-        self.writer.writerow(
+    def add(self, details: range) -> None:
+        self.writer.write_row(
             [
                 details.name,
                 details.address,
@@ -122,7 +123,7 @@ class Exporter:
     writer: object
 
 
-def scrap(url, file):
+def scrap(url: str, file):
     scraper = Scraper()
     details = scraper.scrap(url)
 
@@ -138,7 +139,7 @@ def scrap(url, file):
     file.close()
 
 
-def scrap_all(limit=10000):
+def scrap_all(limit: int):
     list_scraper = ListScraper()
     list_url = "https://www.lenskart.com/stores"
 
