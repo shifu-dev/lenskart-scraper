@@ -1,5 +1,5 @@
 import argparse
-from source import eyeglasses
+from source import glasses
 from source import stores
 from source import lenses
 
@@ -90,7 +90,7 @@ def main() -> None:
             return
 
         if target == "eyeglasses":
-            eyeglasses.scrap_all(args.limit)
+            glasses.scrap_all_eyeglasses(args.limit)
             return
 
         if target == "kidsglasses":

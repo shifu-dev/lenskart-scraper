@@ -235,7 +235,7 @@ class Exporter:
     writer: any
 
 
-def scrap_all(limit=10000):
+def scrap_all_eyeglasses(limit=10000):
     list_scraper = ListScraper()
     list_url = "https://www.lenskart.com/eyeglasses.html"
     urls = list_scraper.scrap(list_url, limit=limit)
