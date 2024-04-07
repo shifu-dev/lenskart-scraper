@@ -28,9 +28,14 @@ class ConsoleWriter(Writer):
 
 class CsvWriter(Writer):
 
-    def __init__(self, file: object) -> None:
+    def __init__(self, path: str) -> None:
         super().__init__()
-        self._writer = csv.writer(file)
+
+        self._file = open(path, "w")
+        self._writer = csv.writer(self._file)
+
+    def __del__(self) -> None:
+        self._file.close()
 
     def write_headers(self, headers: list[str]) -> None:
         self._writer.writerow(headers)
@@ -38,4 +43,5 @@ class CsvWriter(Writer):
     def write_row(self, details: list) -> None:
         self._writer.writerow(details)
 
+    _file: object
     _writer: object
