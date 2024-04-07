@@ -3,10 +3,11 @@ from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Final
 from source import writers
+from source import runners
 import requests
 import json
 
-EYEGLASSES_URL: Final[str] = "https://www.lenskart.com/eyeglasses.html"
+EYEGLASSES_URL: Final[str] = "https://www.lenskart.com/eyeglasses.html?pageCount=90"
 SUNGLASSES_URL: Final[str] = "https://www.lenskart.com/sunglasses.html"
 KIDSGLASSES_URL: Final[str] = (
     "https://www.lenskart.com/eyeglasses/promotions/all-kids-eyeglasses.html"
@@ -41,6 +42,7 @@ class Details:
 
 class Scraper:
     def scrap(self, url: str) -> Details:
+        print(f"scraping {url}.")
         response = requests.get(url)
 
         if response.status_code != HTTPStatus.OK:
@@ -246,16 +248,18 @@ class Exporter:
     writer: writers.Writer
 
 
-def _scrap_all(list_url: str, writer: writers.Writer, limit: int) -> None:
+def _scrap_all(
+    list_url: str, writer: writers.Writer, runner: runners.ScraperRunner, limit: int
+) -> None:
     list_scraper = ListScraper()
     urls = list_scraper.scrap(list_url, limit)
 
     exporter = Exporter(writer)
     scraper = Scraper()
-    for url in urls:
-        print(f"scraping eyeglass: {url}")
-        details = scraper.scrap(url)
-        exporter.add(details)
+    details = runner.run(scraper, urls)
+
+    for detail in details:
+        exporter.add(detail)
 
 
 def scrap_one(url: str, writer: writers.Writer) -> None:
@@ -266,7 +270,9 @@ def scrap_one(url: str, writer: writers.Writer) -> None:
     exporter.add(details)
 
 
-def scrap_all(writer: writers.Writer, limit: int) -> None:
+def scrap_all(
+    writer: writers.Writer, runner: runners.ScraperRunner, limit: int
+) -> None:
 
     list_scraper = ListScraper()
 
@@ -295,21 +301,31 @@ def scrap_all(writer: writers.Writer, limit: int) -> None:
     return
 
 
-def scrap_all_eyeglasses(writer: writers.Writer, limit: int) -> None:
-    return _scrap_all(EYEGLASSES_URL, writer, limit)
+def scrap_all_eyeglasses(
+    writer: writers.Writer, runner: runners.ScraperRunner, limit: int
+) -> None:
+    return _scrap_all(EYEGLASSES_URL, writer, runner, limit)
 
 
-def scrap_all_sunglasses(writer: writers.Writer, limit: int) -> None:
-    return _scrap_all(SUNGLASSES_URL, writer, limit)
+def scrap_all_sunglasses(
+    writer: writers.Writer, runner: runners.ScraperRunner, limit: int
+) -> None:
+    return _scrap_all(SUNGLASSES_URL, writer, runner, limit)
 
 
-def scrap_all_kidsglasses(writer: writers.Writer, limit: int) -> None:
-    return _scrap_all(KIDSGLASSES_URL, writer, limit)
+def scrap_all_kidsglasses(
+    writer: writers.Writer, runner: runners.ScraperRunner, limit: int
+) -> None:
+    return _scrap_all(KIDSGLASSES_URL, writer, runner, limit)
 
 
-def scrap_all_computer_glasses(writer: writers.Writer, limit: int) -> None:
-    return _scrap_all(COMPUTER_GLASSES_URL, writer, limit)
+def scrap_all_computer_glasses(
+    writer: writers.Writer, runner: runners.ScraperRunner, limit: int
+) -> None:
+    return _scrap_all(COMPUTER_GLASSES_URL, writer, runner, limit)
 
 
-def scrap_all_power_sunglasses(writer: writers.Writer, limit: int) -> None:
-    return _scrap_all(POWER_SUNGLASSES_URL, writer, limit)
+def scrap_all_power_sunglasses(
+    writer: writers.Writer, runner: runners.ScraperRunner, limit: int
+) -> None:
+    return _scrap_all(POWER_SUNGLASSES_URL, writer, runner, limit)
