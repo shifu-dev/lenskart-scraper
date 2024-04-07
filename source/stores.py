@@ -4,6 +4,8 @@ from source import writers
 from http import HTTPStatus
 import csv
 from dataclasses import dataclass
+from source import writers
+from source import runners
 
 
 @dataclass(init=False)
@@ -20,6 +22,8 @@ class Details:
 
 class Scraper:
     def scrap(self, url: str) -> Details:
+        print(f"scraping '{url}'.")
+
         response = requests.get(url)
         if response.status_code != HTTPStatus.OK:
             return None
@@ -123,38 +127,19 @@ class Exporter:
     writer: object
 
 
-def scrap(url: str, file):
-    scraper = Scraper()
-    details = scraper.scrap(url)
-
-    if details is None:
-        print(f"unknown error when scraping store url {url}.")
-        return
-
-    file = open("stores.csv", "w")
-    writer = csv.writer(file)
-    exporter = Exporter(writer)
-
-    exporter.add(details)
-    file.close()
-
-
-def scrap_all(limit: int):
+def scrap_all(
+    writer: writers.Writer, runner: runners.ScraperRunner, limit: int
+) -> None:
     list_scraper = ListScraper()
     list_url = "https://www.lenskart.com/stores"
 
     print(f"scraping {list_url}...")
-    urls = list_scraper.scrap(list_url, limit=limit)
+    urls = list_scraper.scrap(list_url, limit)
     print(f"found {len(urls)} stores.")
 
-    file = open("stores.csv", "w")
-    writer = csv.writer(file)
     exporter = Exporter(writer)
-
     scraper = Scraper()
-    for url in urls:
-        print(f"scraping store: {url}")
-        details = scraper.scrap(url)
-        exporter.add(details)
+    details = runner.run(scraper, urls)
 
-    file.close()
+    for detail in details:
+        exporter.add(detail)
