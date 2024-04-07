@@ -1,80 +1,81 @@
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from http import HTTPStatus
+from source import writers
+from source import runners
 import requests
-import csv
 import re
-from typing import List
 import json
-contact_lens_ids=[]
+
+contact_lens_ids = []
+
+
 @dataclass(init=False)
 class Details:
-    id:str
-    model_name:str
-    brand_name:str
-    image_url:str
-    market_price:int
-    lenskart_price:int
-    purchaseCount:int
-    size:str
-    color:str
-    width:int
-    totalNoOfRatings:str
-    avgRating:str
-    qty:int
+    id = ""
+    model_name = ""
+    brand_name = ""
+    image_url = ""
+    market_price = 0
+    lenskart_price = 0
+    purchaseCount = 0
+    size = ""
+    color = ""
+    width = 0
+    totalNoOfRatings = ""
+    avgRating = ""
+    quantity = 0
 
 
 class Scraper:
     def scrap(self, url) -> Details:
         print(contact_lens_ids)
         response = requests.get(url)
-        
+
         if response.status_code != HTTPStatus.OK:
             return None
-       
 
-    # getting the Json containing the sunglasses info from API
-        for category_id in contact_lens_ids:
-            url = f'https://api-gateway.juno.lenskart.com/v2/products/category/{category_id}?page-size=1000&page=0'
-            response = requests.get(url)
-            data = json.loads(response.content)
-            if 'result' in data:
-                length = len(data['result']["product_list"])
+        # getting the Json containing the sunglasses info from API
+        url = f"https://api-gateway.juno.lenskart.com/v2/products/category/{category_id}?response-size=1000&response=0"
+        response = requests.get(url)
+        data = json.loads(response.content)
+        if "result" in data:
+            length = len(data["result"]["product_list"])
 
-                for i in range(length):
-                    id=['result']["product_list"][i]['id']
-                    brand_name=['result']["product_list"][i]['brand_name']
-                    purchaseCount=['result']["product_list"][i]['purchaseCount']
-                    model_name=['result']["product_list"][i]['model_name']
-                    image_url=['result']["product_list"][i]['image_url']
-                    avgRating=['result']["product_list"][i]['avgRating']
-                    market_price=['result']["product_list"][i]['prices'][0]['price']
-                    lenscart_price=['result']["product_list"][i]['prices'][1]['price']
-                    qty=['result']["product_list"][i]['qty']
+            for i in range(length):
+                id = data["result"]["product_list"][i]["id"]
+                brand_name = data["result"]["product_list"][i]["brand_name"]
+                purchaseCount = data["result"]["product_list"][i]["purchaseCount"]
+                model_name = data["result"]["product_list"][i]["model_name"]
+                image_url = data["result"]["product_list"][i]["image_url"]
+                avgRating = data["result"]["product_list"][i]["avgRating"]
+                market_price = data["result"]["product_list"][i]["prices"][0]["price"]
+                lenscart_price = data["result"]["product_list"][i]["prices"][1]["price"]
+                quantity = data["result"]["product_list"][i]["qty"]
 
-            # raw level cleaning data
-                    
+                # raw level cleaning data
 
-                    if 'size' in data['result']["product_list"][i]:
-                        size=data['result']["product_list"][i]['size']
-                    else:
-                        size=0
+                if "size" in data["result"]["product_list"][i]:
+                    size = data["result"]["product_list"][i]["size"]
+                else:
+                    size = 0
 
-                    if 'color' in data['result']["product_list"][i]:
-                        color=data['result']["product_list"][i]['color']
-                    else:
-                        color=None
+                if "color" in data["result"]["product_list"][i]:
+                    color = data["result"]["product_list"][i]["color"]
+                else:
+                    color = None
 
-                    if ('width') in data['result']["product_list"][i]:
-                        width=data['result']["product_list"][i]['width']
-                    else:
-                        width=None
+                if ("width") in data["result"]["product_list"][i]:
+                    width = data["result"]["product_list"][i]["width"]
+                else:
+                    width = None
 
-                    if ('totalNoOfRatings') in data['result']["product_list"][i]:
-                        totalNoOfRatings=data['result']["product_list"][i]['totalNoOfRatings']
-                    else:
-                        totalNoOfRatings=0
-
+                if ("totalNoOfRatings") in data["result"]["product_list"][i]:
+                    totalNoOfRatings = data["result"]["product_list"][i][
+                        "totalNoOfRatings"
+                    ]
+                else:
+                    totalNoOfRatings = 0
 
         details = Details()
         details.id = id
@@ -89,96 +90,89 @@ class Scraper:
         details.width = width
         details.totalNoOfRatings = totalNoOfRatings
         details.avgRating = avgRating
-        details.qty = qty
-        print(details)
+        details.quantity = quantity
         return details
 
+
 class ListScraper:
-    def scrap(self, url, limit=10000) -> List[str]:
+    def scrap(self, url: str, limit: int) -> list[str]:
 
         print(f"scrapping {url}...")
 
-        page = requests.get(url)
-        soup = BeautifulSoup(page.text, "html.parser")
-        pattern = '<h2 class=\"bold bgcolor123\">(.*?)</h2>.*?(<a.*?)</li>'
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
 
+        pattern = '<h2 class="bold bgcolor123">(.*?)</h2>.*?(<a.*?)</li>'
         matches = re.findall(pattern, str(soup), re.S)
-        print("Matches")
-        contact=matches[1]
-        print(contact)
+        contact = matches[1]
         contact_lens_urls = []
 
-# dictionary creation of all urls with corresponding category name
-        for  html_content in contact:
-            url_regex_pattern = r'<a\s+href="([^"]+)">'
-            temp_urls = re.findall(url_regex_pattern, html_content)
-            contact_lens_urls.append (temp_urls)
-            print(contact_lens_urls)
-# loop through every url and get the ids of the specific category from
-        global contact_lens_ids 
+        # dictionary creation of all urls with corresponding category name
+        for html_content in contact:
+            url_regex = r'<a\s+href="([^"]+)">'
+            url = re.findall(url_regex, html_content)
+            contact_lens_urls.append(url)
 
-# loop through every url from each category in the dictionary
+        return contact_lens_urls
 
-        for each_category_url in contact_lens_urls[1]:
-            product_html = requests.get(each_category_url)
-    # get id of each category
-            each_category_id = re.findall(r"{\"pageProps\":{\"data\":{\"id\":(.*?),\"userData\":", product_html.text, re.S)
-            contact_lens_ids.append(each_category_id[0])
-            print('Got all cateory ids')
-        print(contact_lens_ids)
+
 class Exporter:
     def __init__(self, writer):
         self.writer = writer
-        writer.writerow([
-            "id"
-   " model_name"
-    "brand_name"
-    "image_url"
-    "market_price"
-    "lenskart_price"
-    "purchaseCount"
-    "size"
-    "color"
-    "width"
-    "totalNoOfRatings"
-    "avgRating"
-    "qty"
-        ])
+        self.writer.write_headers(
+            [
+                "Id"
+                "Name"
+                "Brand Name"
+                "Image Url"
+                "Market Price"
+                "Price"
+                "Purchase Count"
+                "Size"
+                "Color"
+                "Width"
+                "Number of Ratings"
+                "Avg Rating"
+                "Quantity"
+            ]
+        )
 
     def add(self, details: Details) -> None:
-        self.writer.writerow([details.id,
-    details.model_name,
-    details.brand_name,
-    details.image_url,
-    details.market_price,
-    details.lenskart_price,
-    details.purchaseCount,
-    details.size,
-    details.color,
-    details.width,
-    details.totalNoOfRatings,
-    details.avgRating,
-    details.qty,])
+        self.writer.write_row(
+            [
+                details.id,
+                details.model_name,
+                details.brand_name,
+                details.image_url,
+                details.market_price,
+                details.lenskart_price,
+                details.purchaseCount,
+                details.size,
+                details.color,
+                details.width,
+                details.totalNoOfRatings,
+                details.avgRating,
+                details.quantity,
+            ]
+        )
 
     writer: any
 
 
-def scrap_all(limit=10000):
-    list_scraper = ListScraper()
-    list_url = "https://www.lenskart.com/contact-lenses.html"
-    urls = list_scraper.scrap(list_url, limit=limit)
-
-    file = open("lenses.csv", "w")
-    writer = csv.writer(file)
-    exporter = Exporter(writer)
+def scrap_all(writer: writers.Writer, runner: runners.ScraperRunner, limit: int):
+    # list_url = "https://www.lenskart.com/contact-lenses.html"
+    # list_scraper = ListScraper()
+    # urls = list_scraper.scrap(list_url, limit)
 
     scraper = Scraper()
-    print(scraper)
-    # for url in urls:
-    #     print(f"scraping lens: {url}")
-    #     details = scraper.scrap(url)
-    #     exporter.add(details)
+    result = scraper.scrap(
+        "https://www.lenskart.com/soflens-59-6-lens-per-box-bausch-lomb.html"
+    )
+    print(result)
 
-    file.close()
-scrap_all()
+    # exporter = Exporter(writer)
+    # scraper = Scraper()
+    # details = runner.run(scraper, urls)
 
+    # for detail in details:
+    #     exporter.add(detail)
