@@ -31,7 +31,7 @@ class CsvWriter(Writer):
     def __init__(self, path: str) -> None:
         super().__init__()
 
-        self._file = open(path, "w")
+        self._file = open(path, "w",newline='', encoding='utf-8')
         self._writer = csv.writer(self._file)
 
     def __del__(self) -> None:
