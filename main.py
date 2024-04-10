@@ -124,7 +124,7 @@ def parse_and_get_writer(args: object) -> writers.Writer:
         exit()
 
 
-def parse_and_get_runner(args: object) -> writers.Writer:
+def parse_and_get_runner(args: object) -> runners.ScraperRunner:
     count = 0
 
     if args.parallel is None:
@@ -142,7 +142,9 @@ def parse_and_get_runner(args: object) -> writers.Writer:
         return runners.ParallelScraperRunner(count)
 
 
-def parse_and_scrap_target(args, writer: writers.Writer, runner: runners.ScraperRunner) -> None:
+def parse_and_scrap_target(
+    args, writer: writers.Writer, runner: runners.ScraperRunner
+) -> None:
 
     if len(args.target) == 1:
         target: str = args.target[0]
