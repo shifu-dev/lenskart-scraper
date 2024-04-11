@@ -4,7 +4,7 @@ from http import HTTPStatus
 from source import writers
 from source import runners
 import requests
-import re
+from pathlib import Path
 import json
 
 contact_lens_ids = []
@@ -29,6 +29,7 @@ class Details:
 
 class Scraper:
     def scrap(self, url) -> Details:
+        # reimplement this using scraping instead of api.
         print(contact_lens_ids)
         response = requests.get(url)
 
@@ -96,24 +97,26 @@ class Scraper:
 
 class ListScraper:
     def scrap(self, url: str, limit: int) -> list[str]:
+        # return urls for each lens
+        return []
 
-        print(f"scrapping {url}...")
+    def scrap_all(self, limit: int) -> list[str]:
 
-        response = requests.get(url)
+        response = requests.get("https://www.lenskart.com/contact-lenses.html")
         soup = BeautifulSoup(response.text, "html.parser")
+        category_list = soup.find(class_="list-new-wrap hidden-phone mtop15")
+        brand_list = category_list.contents[3]
 
-        pattern = '<h2 class="bold bgcolor123">(.*?)</h2>.*?(<a.*?)</li>'
-        matches = re.findall(pattern, str(soup), re.S)
-        contact = matches[1]
-        contact_lens_urls = []
+        urls = []
+        for brand_tag in brand_list.find_all("a"):
+            brand_link = brand_tag.get("href")
+            brand_name = Path(brand_link).stem
 
-        # dictionary creation of all urls with corresponding category name
-        for html_content in contact:
-            url_regex = r'<a\s+href="([^"]+)">'
-            url = re.findall(url_regex, html_content)
-            contact_lens_urls.append(url)
+            print(f"scraping brand '{brand_name}': {brand_link}.")
+            brand_items = self.scrap(brand_link, limit - len(urls))
+            urls.extend(brand_items)
 
-        return contact_lens_urls
+        return urls
 
 
 class Exporter:
@@ -160,19 +163,12 @@ class Exporter:
 
 
 def scrap_all(writer: writers.Writer, runner: runners.ScraperRunner, limit: int):
-    # list_url = "https://www.lenskart.com/contact-lenses.html"
-    # list_scraper = ListScraper()
-    # urls = list_scraper.scrap(list_url, limit)
+    list_scraper = ListScraper()
+    urls = list_scraper.scrap_all(limit)
 
+    exporter = Exporter(writer)
     scraper = Scraper()
-    result = scraper.scrap(
-        "https://www.lenskart.com/soflens-59-6-lens-per-box-bausch-lomb.html"
-    )
-    print(result)
+    details = runner.run(scraper, urls)
 
-    # exporter = Exporter(writer)
-    # scraper = Scraper()
-    # details = runner.run(scraper, urls)
-
-    # for detail in details:
-    #     exporter.add(detail)
+    for detail in details:
+        exporter.add(detail)
