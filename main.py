@@ -128,7 +128,7 @@ def parse_and_get_runner(args: object) -> runners.ScraperRunner:
     count = 0
 
     if args.parallel is None:
-        count = multiprocessing.cpu_count() * 2
+        count = multiprocessing.cpu_count() * 3
     elif args.parallel < 0:
         print("error: non negative value expected for 'parallel' argument.")
         exit()
@@ -213,6 +213,34 @@ def parse_and_scrap_target(
 # --------------------------------------------------------------------------------------------------
 # main()
 # --------------------------------------------------------------------------------------------------
+
+# import requests
+
+# with open("out/delhi.html", "w") as file:
+#     response = requests.get("https://www.lenskart.com/stores/location/karnataka/delhi")
+#     file.write(response.text)
+
+# with open("out/ahmedabad.html", "w") as file:
+#     response = requests.get("https://www.lenskart.com/stores/location/karnataka/ahmedabad")
+#     file.write(response.text)
+
+# with open("out/bengaluru.html", "w") as file:
+#     response = requests.get("https://www.lenskart.com/stores/location/karnataka/bengaluru")
+#     file.write(response.text)
+
+# with open("out/hyderabad.html", "w") as file:
+#     response = requests.get("https://www.lenskart.com/stores/location/karnataka/hyderabad")
+#     file.write(response.text)
+
+# with open("out/chennai.html", "w") as file:
+#     response = requests.get("https://www.lenskart.com/stores/location/karnataka/chennai")
+#     file.write(response.text)
+
+# with open("out/mumbai.html", "w") as file:
+#     response = requests.get("https://www.lenskart.com/stores/location/karnataka/mumbai")
+#     file.write(response.text)
+
+# exit()
 
 parser = setup_arg_parsing()
 args = parser.parse_args()
