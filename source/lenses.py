@@ -38,6 +38,7 @@ class Scraper:
 
         # getting the Json containing the sunglasses info from API
         url = f"https://api-gateway.juno.lenskart.com/v2/products/category/{category_id}?response-size=1000&response=0"
+        
         response = requests.get(url)
         data = json.loads(response.content)
         if "result" in data:
@@ -97,10 +98,18 @@ class Scraper:
 
 class ListScraper:
     def scrap(self, url: str, limit: int) -> list[str]:
-        # return urls for each lens
-        return []
+        page = requests.get(url)
+        soup = BeautifulSoup(page.text, "html.parser")
+   
+        lenses_url=[]
+        lenses_tag = soup.find_all("li",class_="top_li", limit=limit)
+        for url in lenses_tag:
+            # print(url.find('a')['href'])
+            urls= url.find('a')['href']
+            lenses_url.append(urls)
+        return lenses_url
 
-    def scrap_all(self, limit: int) -> list[str]:
+    def scrap_all(self,  limit: int) -> list[str]:
 
         response = requests.get("https://www.lenskart.com/contact-lenses.html")
         soup = BeautifulSoup(response.text, "html.parser")
