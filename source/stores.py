@@ -116,7 +116,7 @@ class ListScraper:
         url = f"https://www.lenskart.com/stores/location/{location}"
         return self.scrap(url, limit)
 
-    def scrap_all_locations(self, location: str, limit: int) -> list[str]:
+    def scrap_all_locations(self, limit: int) -> list[str]:
         locations = [
             "Delhi",
             "Bangalore",
@@ -126,10 +126,10 @@ class ListScraper:
             "Hyderabad",
         ]
 
-        urls: list
+        urls: list = []
         for location in locations:
             print(f"scraping location {location}.")
-            urls += self.scrap_for_location(location)
+            urls += self.scrap_for_location(location, limit - len(urls))
 
         return urls
 
