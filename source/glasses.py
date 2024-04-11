@@ -20,157 +20,164 @@ POWER_SUNGLASSES_URL: Final[str] = "https://www.lenskart.com/power-sunglasses-ma
 
 @dataclass(init=False)
 class Details:
-    name: str
-    size: str
-    price: int
-    currency: str
-    brand_name: str
-    product_type: str
-    frame_type: str
-    frame_shape: str
-    collection: str
-    frame_size: str
-    coupon_code: str
-    rating: str
-    weight_group: str
-    material: str
-    product_warranty: str
-    gender: str
-    purchase_count: int
-    product_quantity: int
+    name = ""
+    size = ""
+    price = 0
+    currency = ""
+    brand_name = ""
+    product_type = ""
+    frame_type = ""
+    frame_shape = ""
+    collection = ""
+    frame_size = ""
+    coupon_code = ""
+    rating = ""
+    weight_group = ""
+    material = ""
+    product_warranty = ""
+    gender = ""
+    purchase_count = 0
+    product_quantity = 0
 
 
 class Scraper:
     def scrap(self, url: str) -> Details:
-        print(f"scraping {url}.")
-        response = requests.get(url)
 
-        if response.status_code != HTTPStatus.OK:
+        try:
+            print(f"scraping {url}.")
+            response = requests.get(url)
+
+            if response.status_code != HTTPStatus.OK:
+                return None
+
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            product_name = soup.find(class_="Title--mnzriy sVVvQ").text
+            product_price_span = soup.find(class_="SpecialPriceSpan--1mh26ry bKbHQj")
+            product_currency = product_price_span.contents[0].text
+            product_size_text = soup.find(class_="Size--kn7d5n dOdKAm").text
+            product_size = product_size_text[7:]  # 7 for "Size : " in "Size : Wide"
+
+            script_tag = soup.find(id="__NEXT_DATA__")
+            data = json.loads(script_tag.string)
+
+            product_data = data["props"]["pageProps"]["data"]["productDetailData"]
+            technical_product_info = product_data["technicalProductInfo"]
+            general_product_info = product_data["generalProductInfo"]
+
+            brand_name = next(
+                (
+                    item["value"]
+                    for item in technical_product_info
+                    if item["name"] == "Brand Name"
+                ),
+                None,
+            )
+            product_type = next(
+                (
+                    item["value"]
+                    for item in technical_product_info
+                    if item["name"] == "Product Type"
+                ),
+                None,
+            )
+            frame_type = next(
+                (
+                    item["value"]
+                    for item in technical_product_info
+                    if item["name"] == "Frame Type"
+                ),
+                None,
+            )
+            frame_shape = next(
+                (
+                    item["value"]
+                    for item in technical_product_info
+                    if item["name"] == "Frame Shape"
+                ),
+                None,
+            )
+
+            collection = next(
+                (
+                    item["value"]
+                    for item in general_product_info
+                    if item["name"] == "Collection"
+                ),
+                None,
+            )
+            frame_size = next(
+                (
+                    item["value"]
+                    for item in general_product_info
+                    if item["name"] == "Frame Size"
+                ),
+                None,
+            )
+            weight_group = next(
+                (
+                    item["value"]
+                    for item in general_product_info
+                    if item["name"] == "Weight Group"
+                ),
+                None,
+            )
+            material = next(
+                (
+                    item["value"]
+                    for item in general_product_info
+                    if item["name"] == "Material"
+                ),
+                None,
+            )
+            product_warranty = next(
+                (
+                    item["value"]
+                    for item in general_product_info
+                    if item["name"] == "Product Warranty"
+                ),
+                None,
+            )
+            gender = next(
+                (
+                    item["value"]
+                    for item in general_product_info
+                    if item["name"] == "Gender"
+                ),
+                None,
+            )
+
+            price = product_data["price"]["basePrice"]
+            rating = product_data["productRating"]
+            purchase_count = product_data["purchaseCount"]
+            product_quantity = product_data["productQuantity"]
+
+            details = Details()
+            details.name = product_name
+            details.currency = product_currency
+            details.size = product_size
+            details.brand_name = brand_name
+            details.product_type = product_type
+            details.frame_type = frame_type
+            details.frame_shape = frame_shape
+            details.collection = collection
+            details.frame_size = frame_size
+            details.price = price
+            details.coupon_code = ""
+            details.rating = rating
+            details.weight_group = weight_group
+            details.material = material
+            details.product_warranty = product_warranty
+            details.gender = gender
+            details.purchase_count = purchase_count
+            details.product_quantity = product_quantity
+
+            return details
+
+        except Exception as error:
+            # raise error
+            print(error)
             return None
-
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        product_name = soup.find(class_="Title--1mf9vro hPTYyn").text
-        product_price_span = soup.find(class_="SpecialPriceSpan--1olt47v eowfNn")
-        product_currency = product_price_span.contents[0].text
-        product_size_text = soup.find(class_="Size--13d7slh dCZfjB").text
-        product_size = product_size_text[7:]  # 7 for "Size : " in "Size : Wide"
-
-        script_tag = soup.find("script", {"id": "__NEXT_DATA__"})
-        data = json.loads(script_tag.string)
-
-        product_data = data["props"]["pageProps"]["data"]["productDetailData"]
-        technical_product_info = product_data["technicalProductInfo"]
-        general_product_info = product_data["generalProductInfo"]
-
-        brand_name = next(
-            (
-                item["value"]
-                for item in technical_product_info
-                if item["name"] == "Brand Name"
-            ),
-            None,
-        )
-        product_type = next(
-            (
-                item["value"]
-                for item in technical_product_info
-                if item["name"] == "Product Type"
-            ),
-            None,
-        )
-        frame_type = next(
-            (
-                item["value"]
-                for item in technical_product_info
-                if item["name"] == "Frame Type"
-            ),
-            None,
-        )
-        frame_shape = next(
-            (
-                item["value"]
-                for item in technical_product_info
-                if item["name"] == "Frame Shape"
-            ),
-            None,
-        )
-
-        collection = next(
-            (
-                item["value"]
-                for item in general_product_info
-                if item["name"] == "Collection"
-            ),
-            None,
-        )
-        frame_size = next(
-            (
-                item["value"]
-                for item in general_product_info
-                if item["name"] == "Frame Size"
-            ),
-            None,
-        )
-        weight_group = next(
-            (
-                item["value"]
-                for item in general_product_info
-                if item["name"] == "Weight Group"
-            ),
-            None,
-        )
-        material = next(
-            (
-                item["value"]
-                for item in general_product_info
-                if item["name"] == "Material"
-            ),
-            None,
-        )
-        product_warranty = next(
-            (
-                item["value"]
-                for item in general_product_info
-                if item["name"] == "Product Warranty"
-            ),
-            None,
-        )
-        gender = next(
-            (
-                item["value"]
-                for item in general_product_info
-                if item["name"] == "Gender"
-            ),
-            None,
-        )
-
-        price = product_data["price"]["basePrice"]
-        rating = product_data["productRating"]
-        purchase_count = product_data["purchaseCount"]
-        product_quantity = product_data["productQuantity"]
-
-        details = Details()
-        details.name = product_name
-        details.currency = product_currency
-        details.size = product_size
-        details.brand_name = brand_name
-        details.product_type = product_type
-        details.frame_type = frame_type
-        details.frame_shape = frame_shape
-        details.collection = collection
-        details.frame_size = frame_size
-        details.price = price
-        details.coupon_code = ""
-        details.rating = rating
-        details.weight_group = weight_group
-        details.material = material
-        details.product_warranty = product_warranty
-        details.gender = gender
-        details.purchase_count = purchase_count
-        details.product_quantity = product_quantity
-
-        return details
 
 
 class ListScraper:
@@ -180,15 +187,12 @@ class ListScraper:
 
         page = requests.get(url)
         soup = BeautifulSoup(page.text, "html.parser")
-        products_tag = soup.find_all(
-            class_="ProductContainer--jvh5co hOkCDF", limit=limit
-        )
+        products_tag = soup.select('div[class*="ProductContainer--"]', limit=limit)
 
         print(f"found {len(products_tag)} products.")
 
         products = []
         for product_tag in products_tag:
-            # product_id = product_tag.get("id")
             product_url = product_tag.contents[0].get("href")[1:]
             products.append(f"https://lenskart.com/{product_url}")
 
@@ -222,6 +226,9 @@ class Exporter:
         )
 
     def add(self, details) -> None:
+        if details is None:
+            return
+
         self.writer.write_row(
             [
                 details.name,
@@ -256,18 +263,10 @@ def _scrap_all(
 
     exporter = Exporter(writer)
     scraper = Scraper()
-    details = runner.run(scraper, urls)
+    items = runner.run(scraper, urls)
 
-    for detail in details:
-        exporter.add(detail)
-
-
-def scrap_one(url: str, writer: writers.Writer) -> None:
-    scraper = Scraper()
-    exporter = Exporter(writer)
-
-    details = scraper.scrap(url)
-    exporter.add(details)
+    for item in items:
+        exporter.add(item)
 
 
 def scrap_all(
@@ -293,12 +292,10 @@ def scrap_all(
 
     exporter = Exporter(writer)
     scraper = Scraper()
-    for url in urls:
-        print(f"scraping page {url}.")
-        details = scraper.scrap(url)
-        exporter.add(details)
+    items = runner.run(scraper, urls)
 
-    return
+    for item in items:
+        exporter.add(item)
 
 
 def scrap_all_eyeglasses(
